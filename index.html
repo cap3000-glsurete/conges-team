@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CongésTeam GL CAP 3000</title>
+<meta name="theme-color" content="#0b5d7a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CongésTeam">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column, phone first. Calendar on top, detail of the tapped day right under it. White background by choice. */
+:root{
+  color-scheme:light;--bg:#ffffff;--surface:#ffffff;--ink:#15222b;--muted:#5c6a74;--line:#d3dbd9;
+  --accent:#0b5d7a;--accent-ink:#ffffff;
+  --ok:#1d7a4c;--ok-bg:#dff1e6;--warn:#8f5400;--warn-bg:#fbe9c6;--bad:#b1362d;--bad-bg:#f8dcd8;--off-bg:#e2e7e5;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:680px;margin:0 auto;padding:14px 16px 90px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:24px;margin:0;letter-spacing:.2px}
+h1 small{display:block;font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+h2{font-family:var(--display);font-weight:600;font-size:19px;margin:0}
+h3{font-family:var(--display);font-weight:600;font-size:16px;margin:0}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 13px;cursor:pointer;font-weight:500}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.who{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-weight:500;font-size:14px}
+.tabs,.seg{display:flex;gap:4px;background:var(--off-bg);border-radius:10px;padding:4px;overflow-x:auto}
+.tabs button,.seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:8px 10px;cursor:pointer;font-weight:500;white-space:nowrap;color:var(--muted)}
+.tabs button[aria-selected="true"],.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:600}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:600;text-align:center;margin-left:4px}
+.note{border-left:4px solid var(--warn);background:var(--warn-bg);padding:9px 12px;border-radius:6px;font-size:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow{text-align:center;font-size:12px;color:var(--muted);font-weight:600;padding:2px 0}
+.day{position:relative;aspect-ratio:1/1;min-height:40px;border:1px solid transparent;border-radius:8px;background:var(--off-bg);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-weight:500}
+.day .cnt{position:absolute;right:3px;bottom:2px;font-size:10px;font-weight:600;color:var(--muted)}
+.day.ok{background:var(--ok-bg);color:var(--ok)}
+.day.limite{background:var(--warn-bg);color:var(--warn)}
+.day.complet,.day.poste{background:var(--bad-bg);color:var(--bad)}
+.day.complet .n,.day.poste .n{text-decoration:line-through}
+.day.bloque{background:repeating-linear-gradient(135deg,var(--off-bg) 0 5px,var(--line) 5px 7px);color:var(--muted)}
+.day.delai{color:var(--muted)}
+.day.passe{background:transparent;color:var(--muted);opacity:.55}
+.day.mine{background:var(--accent);color:var(--accent-ink)}
+.day.mine .cnt{color:var(--accent-ink)}
+.day.today{border-color:var(--ink)}
+.day.sel{outline:2px solid var(--accent);outline-offset:1px}
+.legend{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:13px;height:13px;border-radius:3px;display:inline-block}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.off{background:var(--off-bg);color:var(--muted)}
+.list{display:flex;flex-direction:column}
+.item{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.item:first-child{border-top:0;padding-top:0}
+.item .t{font-weight:600}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
+input[type=text],input[type=date],input[type=number],input[type=password],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.v{border-radius:8px;padding:10px 12px;font-size:14px}
+.v.ok{background:var(--ok-bg);color:var(--ok)}
+.v.bad{background:var(--bad-bg);color:var(--bad)}
+.v.off{background:var(--off-bg);color:var(--muted)}
+.v.warn{background:var(--warn-bg);color:var(--warn)}
+.v ul{margin:4px 0 0;padding-left:18px}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+#sheet.open{display:flex}
+#sheet .box{background:var(--surface);width:100%;max-width:680px;max-height:92%;overflow:auto;border-radius:14px 14px 0 0;padding:16px;display:flex;flex-direction:column;gap:12px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:14px;display:none;z-index:20;max-width:90%}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.check{width:20px;height:20px;accent-color:var(--accent)}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.btn,.day{transition:background-color .12s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>CongésTeam<small>GL CAP 3000</small></h1>
+    <div id="who"></div>
+  </header>
+  <div id="notes"></div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <main id="main" style="display:flex;flex-direction:column;gap:14px"></main>
+</div>
+<div id="sheet"><div class="box" id="box"></div></div>
+<div id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+"use strict";
+/* Public project address and publishable key: safe to ship, every call is checked by the database. */
+var SB_URL="https://lxmpiiwgofmpcbdbhens.supabase.co",SB_KEY="sb_publishable_MOnmoccuJcQVvMJ4WbigzA_DnvN0-fZ";
+var TYPES={CP:"Congés payés",ABS:"Absence (indisponibilité)",CSS:"Congé sans solde",RECUP:"Récupération",EXC:"Congé exceptionnel",MAR:"Mariage ou PACS",DEC:"Décès d'un proche",AUTRE:"Autre"};
+var now0=new Date();
+var S={token:null,team:null,ready:false,neterr:false,busy:false,login:{step:"team",agents:[],pick:null,msg:""},
+  me:null,mgr:false,today:null,config:null,agents:[],requests:[],hist:[],tab:"cal",sec:"dem",
+  month:[now0.getFullYear(),now0.getMonth()],day:null,sheet:null,draft:null,hrOff:{},dirty:false};
+
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function pad(n){return n<10?"0"+n:""+n}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function pd(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function addDays(s,n){var d=pd(s);d.setDate(d.getDate()+n);return iso(d)}
+function diff(a,b){return Math.round((pd(b)-pd(a))/864e5)}
+function today(){return S.today||iso(new Date())}
+function fmt(s){return pd(s).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
+function fmtS(s){var p=String(s).slice(0,10).split("-");return p[2]+"/"+p[1]+"/"+p[0]}
+function fmtDT(s){var d=new Date(s);return isNaN(d)?"":pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear()+" "+pad(d.getHours())+":"+pad(d.getMinutes())}
+function store(k,v,sess){try{var s=sess?sessionStorage:localStorage;if(v===undefined)return s.getItem(k);if(v===null)s.removeItem(k);else s.setItem(k,v)}catch(e){}return null}
+function cfg(){var c=S.config||{};return{maxAbsents:c.maxAbsents!=null?+c.maxAbsents:2,noticeDays:c.noticeDays!=null?+c.noticeDays:30,
+  postes:Array.isArray(c.postes)?c.postes:[],quotas:c.quotas&&typeof c.quotas==="object"?c.quotas:{},blocked:Array.isArray(c.blocked)?c.blocked:[],cpFrom:c.cpFrom||""}}
+function agent(id){for(var i=0;i<S.agents.length;i++)if(S.agents[i].id===id)return S.agents[i];return null}
+function reqBy(id){for(var i=0;i<S.requests.length;i++)if(S.requests[i].id===id)return S.requests[i];return null}
+function aName(id){var a=agent(id);return a?a.name:"Agent supprimé"}
+function actives(){return S.agents.filter(function(a){return a.active!==false}).sort(function(a,b){return String(a.name).localeCompare(String(b.name),"fr")})}
+function live(r){return r.status==="pending"||r.status==="approved"}
+function absOn(d,except){return S.requests.filter(function(r){return live(r)&&r.from<=d&&d<=r.to&&r.id!==except})}
+
+/* Jours décomptés : tous les jours sauf les dimanches et les jours fériés français. */
+function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1;return y+"-"+pad(mo)+"-"+pad(da)}
+var FER={};
+function feries(y){if(FER[y])return FER[y];var e=easter(y),o={};[y+"-01-01",addDays(e,1),y+"-05-01",y+"-05-08",addDays(e,39),addDays(e,50),y+"-07-14",y+"-08-15",y+"-11-01",y+"-11-11",y+"-12-25"].forEach(function(d){o[d]=1});return FER[y]=o}
+function counted(d){return pd(d).getDay()!==0&&!feries(+d.slice(0,4))[d]}
+function cpDays(from,to){var n=0,t=diff(from,to)+1;for(var i=0;i<t&&i<400;i++)if(counted(addDays(from,i)))n++;return n}
+function nDays(r){return cpDays(r.from,r.to)}
+function dur(r){return r.type==="CP"?cpDays(r.from,r.to):diff(r.from,r.to)+1}
+/* Compteur de CP : seuls les congés payés sont déduits du solde. */
+function cpUsed(id,st){var from=cfg().cpFrom;return S.requests.filter(function(r){return r.agentId===id&&r.type==="CP"&&r.status===st&&(!from||r.from>=from)}).reduce(function(s,r){return s+nDays(r)},0)}
+function cpInfo(a){var has=!!a&&a.cpSolde!=null&&a.cpSolde!==""&&!isNaN(+a.cpSolde),ok=a?cpUsed(a.id,"approved"):0,pe=a?cpUsed(a.id,"pending"):0;return{has:has,acq:has?+a.cpSolde:null,ok:ok,pend:pe,left:has?+a.cpSolde-ok:null}}
+function cpLine(a){var i=cpInfo(a);if(!i.has)return"Solde CP non renseigné";return"CP restants : "+i.left+" j (acquis "+i.acq+", validés "+i.ok+(i.pend?", en attente "+i.pend:"")+")"}
+
+/* Criteria for one day, for one agent (or nobody). They warn, they never forbid: the manager decides. */
+function checkDay(d,ag,except){
+  var c=cfg(),abs=absOn(d,except),T=today();
+  if(d<T)return{code:"passe",abs:abs};
+  var b=null;for(var i=0;i<c.blocked.length;i++){var p=c.blocked[i];if(p.from&&p.to&&p.from<=d&&d<=p.to){b=p;break}}
+  if(b)return{code:"bloque",abs:abs,label:b.label||"Période bloquée"};
+  var others=ag?abs.filter(function(r){return r.agentId!==ag.id}):abs;
+  if(ag&&others.length!==abs.length)return{code:"mine",abs:abs};
+  if(diff(T,d)<c.noticeDays)return{code:"delai",abs:abs};
+  if(others.length>=c.maxAbsents)return{code:"complet",abs:abs};
+  if(ag&&ag.poste&&c.quotas[ag.poste]!=null){
+    var n=others.filter(function(r){var o=agent(r.agentId);return o&&o.poste===ag.poste}).length;
+    if(n>=+c.quotas[ag.poste])return{code:"poste",abs:abs,label:ag.poste};
+  }
+  return{code:(c.maxAbsents>1&&others.length===c.maxAbsents-1)?"limite":"ok",abs:abs};
+}
+function reason(r){var c=cfg();switch(r.code){
+  case"passe":return"Date passée";
+  case"bloque":return"Période bloquée : "+r.label;
+  case"mine":return"Déjà en congé ce jour";
+  case"delai":return"Délai trop court : demande à faire "+c.noticeDays+" jours avant";
+  case"complet":return"Complet : "+c.maxAbsents+" absent"+(c.maxAbsents>1?"s":"")+" maximum par jour";
+  case"poste":return"Complet pour le poste "+r.label;
+  case"limite":return"Possible, dernière place";
+  default:return"Possible"}}
+function isFree(code){return code==="ok"||code==="limite"}
+function checkRange(ag,from,to,except){var bad=[],n=diff(from,to)+1;for(var i=0;i<n&&i<370;i++){var d=addDays(from,i),r=checkDay(d,ag,except);if(!isFree(r.code)){r.iso=d;bad.push(r)}}return{days:n,bad:bad}}
+
+function toast(m){var t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display="none"},4200)}
+
+/* ---------- Server ---------- */
+var ERR={session:"Session expirée, reconnecte-toi.",forbidden:"Action réservée au responsable.",overlap:"Il y a déjà une demande sur ces dates pour cet agent.",past:"La date de début est déjà passée.",dates:"Dates invalides (120 jours maximum par demande).",type:"Choisis un motif.",agent:"Agent introuvable ou inactif.",state:"Cette demande a déjà été traitée.",notfound:"Demande introuvable.",name:"Indique un nom (60 caractères maximum).",cp:"Solde de CP invalide.",cfg:"Critères invalides.",short:"Code trop court.",self:"Impossible sur ton propre compte.",role:"Rôle invalide.",status:"Décision invalide."};
+function rpc(fn,args){return fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY},body:JSON.stringify(args||{})}).then(function(r){if(!r.ok)throw new Error("http "+r.status);return r.json()})}
+function call(fn,args){args=args||{};args.p_token=S.token;
+  return rpc(fn,args).then(function(j){if(j&&j.error){if(j.error==="session")doLogout(true);toast(ERR[j.error]||"Action refusée.");return null}return j||{}},
+    function(){toast("Connexion impossible. Vérifie ton réseau et réessaie.");return null})}
+function act(fn,args,okMsg){return call(fn,args).then(function(j){if(!j)return false;if(okMsg)toast(okMsg);return load().then(function(){return true})})}
+function load(){
+  if(!S.token)return Promise.resolve();
+  return rpc("ct_state",{p_token:S.token}).then(function(j){
+    if(!j||j.error){doLogout(true);return}
+    S.neterr=false;S.me=j.me.id;S.mgr=j.me.role==="resp";S.today=j.today;S.config=j.config;
+    S.agents=(j.agents||[]).map(function(a){return{id:a.id,name:a.name,poste:a.poste||"",active:a.active,role:a.role,cpSolde:a.id===j.me.id?j.me.cp_solde:a.cp_solde,hasPin:a.has_pin,locked:a.locked}});
+    S.requests=j.requests||[];S.hist=j.history||[];S.ready=true;
+    if(!S.mgr&&S.tab==="mgr")S.tab="cal";
+    render();
+  },function(){S.neterr=true;render()});
+}
+function setToken(t,keep){S.token=t;store("ct_tok",null);store("ct_tok",null,true);if(t)store("ct_tok",t,!keep)}
+function doLogout(silent){
+  if(S.token&&!silent)rpc("ct_logout",{p_token:S.token}).catch(function(){});
+  setToken(null);S.ready=false;S.sheet=null;$("#sheet").classList.remove("open");S.draft=null;S.tab="cal";
+  S.login={step:"team",agents:[],pick:null,msg:silent?"Session expirée, reconnecte-toi.":""};
+  startLogin();
+}
+function startLogin(){
+  render(true);
+  if(!S.team)return;
+  rpc("ct_team",{p_team:S.team}).then(function(j){
+    if(j&&j.agents){S.login.agents=j.agents;S.login.step="names"}else{S.team=null;store("ct_team",null)}
+    render(true);
+  },function(){S.login.msg="Connexion impossible. Vérifie ton réseau.";render(true)});
+}
+
+/* ---------- Rendering ---------- */
+function render(force){
+  var ae=document.activeElement,m=$("#main");
+  if(!force&&ae&&m.contains(ae)&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)&&ae.type!=="checkbox"){S.dirty=true;return}
+  if(!S.token){$("#who").innerHTML="";$("#notes").innerHTML="";$("#tabs").style.display="none";m.innerHTML=vLogin();return}
+  if(!S.ready){$("#who").innerHTML="";$("#tabs").style.display="none";$("#notes").innerHTML="";
+    m.innerHTML='<section class="card"><p class="muted">'+(S.neterr?"Connexion impossible pour le moment.":"Chargement des congés…")+"</p>"+(S.neterr?'<button class="btn" data-act="retry">Réessayer</button>':"")+"</section>";return}
+  var me=agent(S.me);
+  $("#who").innerHTML='<button class="who" data-act="account">'+(me?esc(me.name)+(me.poste?" · "+esc(me.poste):""):"Mon compte")+"</button>";
+  $("#notes").innerHTML=S.neterr?'<p class="note">Connexion perdue : ce qui est affiché peut ne pas être à jour.</p>':"";
+  var pend=S.requests.filter(function(r){return r.status==="pending"}).length;
+  var tabs=[["cal","Calendrier"],["mes","Mes demandes"]];if(S.mgr)tabs.push(["mgr","Responsable"]);
+  $("#tabs").style.display="";
+  $("#tabs").innerHTML=tabs.map(function(t){return'<button role="tab" data-act="tab" data-t="'+t[0]+'" aria-selected="'+(S.tab===t[0])+'">'+t[1]+(t[0]==="mgr"&&pend?'<span class="badge">'+pend+"</span>":"")+"</button>"}).join("");
+  m.innerHTML=S.tab==="cal"?vCal():S.tab==="mes"?vMes():vMgr();
+}
+function vLogin(){
+  var L=S.login,msg=L.msg?'<p class="v bad">'+esc(L.msg)+"</p>":"",h='<section class="card">';
+  if(L.step==="team"){
+    h+="<h2>Accès à CongésTeam</h2><p class=\"small muted\">Saisis le code d'équipe donné par ton responsable. Il n'est demandé qu'une fois sur cet appareil.</p>"+
+      '<label class="f">Code d\'équipe<input type="text" id="l-team" autocomplete="off" autocapitalize="characters" spellcheck="false" data-enter="teamok"></label>'+msg+'<button class="btn pri" data-act="teamok">Continuer</button>';
+  }else if(L.step==="names"){
+    h+="<h2>Qui es-tu ?</h2>"+(L.agents.length?'<div class="names">'+L.agents.map(function(a){return'<button class="btn" data-act="lpick" data-id="'+esc(a.id)+'">'+esc(a.name)+"</button>"}).join("")+"</div>":'<p class="small muted">Aucun agent enregistré pour le moment.</p>')+msg+
+      '<button class="btn sm" data-act="teamreset" style="align-self:flex-start">Changer de code d\'équipe</button>';
+  }else{
+    var a=L.pick;
+    h+="<h2>"+esc(a.name)+"</h2>"+(a.has_pin?
+        '<label class="f">Ton code personnel<input type="password" inputmode="numeric" id="l-pin" autocomplete="off" data-enter="lgo"></label>':
+        '<p class="small muted">Première connexion : choisis ton code personnel, 4 chiffres ou plus. Toi seul le connais.</p><label class="f">Nouveau code<input type="password" inputmode="numeric" id="l-pin" autocomplete="off"></label><label class="f">Encore une fois<input type="password" inputmode="numeric" id="l-pin2" autocomplete="off" data-enter="lgo"></label>')+
+      '<label class="row"><input class="check" type="checkbox" id="l-keep"> Rester connecté sur cet appareil</label><p class="small muted">Ne coche pas cette case sur un poste partagé comme le PC sécurité.</p>'+msg+
+      '<div class="row"><button class="btn pri" data-act="lgo">Se connecter</button><button class="btn" data-act="lback">Retour</button></div>';
+  }
+  return h+'</section><p class="small muted">Connexion protégée : code d\'équipe, puis code personnel chiffré. Après 5 erreurs, le compte est bloqué 15 minutes.</p>';
+}
+function statusPill(r){return r.status==="approved"?'<span class="pill ok">Validé</span>':r.status==="pending"?'<span class="pill warn">En attente</span>':r.status==="refused"?'<span class="pill bad">Refusé</span>':'<span class="pill off">Annulé</span>'}
+function reqLine(r){return esc(TYPES[r.type]||r.type)+" · du "+fmtS(r.from)+" au "+fmtS(r.to)+" · "+dur(r)+" j"+(r.type==="CP"?" de CP décomptés":", sans décompte de CP")}
+function pubLine(r){return(S.mgr||r.agentId===S.me)?reqLine(r):esc(TYPES[r.type]||r.type)+" · du "+fmtS(r.from)+" au "+fmtS(r.to)}
+
+function vCal(){
+  var y=S.month[0],mo=S.month[1],me=agent(S.me),T=today();
+  var title=new Date(y,mo,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+  var h='<section class="card"><div class="row between"><button class="btn sm" data-act="mon" data-d="-1" aria-label="Mois précédent">‹</button><h2 style="text-transform:capitalize">'+title+'</h2><button class="btn sm" data-act="mon" data-d="1" aria-label="Mois suivant">›</button></div>';
+  h+='<div class="cal">'+["L","M","M","J","V","S","D"].map(function(d){return'<div class="dow">'+d+"</div>"}).join("");
+  var start=(new Date(y,mo,1).getDay()+6)%7,n=new Date(y,mo+1,0).getDate();
+  for(var i=0;i<start;i++)h+="<div></div>";
+  for(var d=1;d<=n;d++){var s=y+"-"+pad(mo+1)+"-"+pad(d),c=checkDay(s,me);
+    h+='<button class="day '+c.code+(s===S.day?" sel":"")+(s===T?" today":"")+'" data-act="day" data-iso="'+s+'" aria-label="'+esc(fmt(s)+", "+reason(c))+'"><span class="n">'+d+"</span>"+(c.abs.length?'<span class="cnt">'+c.abs.length+"</span>":"")+"</button>"}
+  h+='</div><div class="legend"><span><i class="sw" style="background:var(--ok-bg)"></i>Possible</span><span><i class="sw" style="background:var(--warn-bg)"></i>Dernière place</span><span><i class="sw" style="background:var(--bad-bg)"></i>Complet</span><span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--off-bg) 0 3px,var(--line) 3px 5px)"></i>Bloqué</span><span><i class="sw" style="background:var(--off-bg)"></i>Délai trop court</span><span><i class="sw" style="background:var(--accent)"></i>Mes congés</span><span>Petit chiffre : nombre d\'absents</span></div></section>';
+  h+='<section class="card">';
+  if(!S.day)h+='<p class="muted">Touche un jour pour voir qui est absent et si la date est possible.</p>';
+  else{var c2=checkDay(S.day,me);
+    h+='<div class="row between"><h3 style="text-transform:capitalize">'+esc(fmt(S.day))+'</h3><span class="pill '+(isFree(c2.code)?(c2.code==="ok"?"ok":"warn"):c2.code==="mine"?"off":"bad")+'">'+esc(reason(c2))+"</span></div>";
+    if(c2.abs.length)h+='<div class="list">'+c2.abs.map(function(r){var a=agent(r.agentId);return'<div class="item"><div><div class="t">'+esc(aName(r.agentId))+(a&&a.poste?' <span class="muted small">'+esc(a.poste)+"</span>":"")+'</div><div class="small muted">'+pubLine(r)+"</div></div>"+statusPill(r)+"</div>"}).join("")+"</div>";
+    else h+='<p class="small muted">Personne en congé ce jour.</p>';
+    if(me&&c2.code!=="passe"&&c2.code!=="mine")h+='<button class="btn pri" data-act="newreq" data-from="'+S.day+'">'+(isFree(c2.code)?"Poser une demande à partir de ce jour":"Demander ce jour quand même")+"</button>";
+  }
+  h+="</section>";
+  var a=y+"-"+pad(mo+1)+"-01",z=y+"-"+pad(mo+1)+"-"+pad(n);
+  var inM=S.requests.filter(function(r){return live(r)&&r.from<=z&&r.to>=a}).sort(function(p,q){return p.from<q.from?-1:1});
+  h+='<section class="card"><h3>Absences du mois</h3>'+(inM.length?'<div class="list">'+inM.map(function(r){return'<div class="item"><div><div class="t">'+esc(aName(r.agentId))+'</div><div class="small muted">'+pubLine(r)+"</div></div>"+statusPill(r)+"</div>"}).join("")+"</div>":'<p class="small muted">Aucune absence posée sur ce mois.</p>')+"</section>";
+  var c=cfg();
+  h+='<section class="card"><h3>Règles en vigueur</h3><p class="small">'+c.maxAbsents+" absent"+(c.maxAbsents>1?"s":"")+" maximum par jour · demande "+c.noticeDays+" jours avant"+
+    Object.keys(c.quotas).map(function(k){return" · "+esc(k)+" : "+esc(c.quotas[k])+" à la fois"}).join("")+'</p><p class="small muted">Ces règles avertissent sans bloquer : le responsable décide de chaque demande.</p>'+
+    (c.blocked.length?'<p class="small muted">Périodes bloquées : '+c.blocked.map(function(b){return esc(b.label||"sans nom")+" ("+fmtS(b.from)+" au "+fmtS(b.to)+")"}).join(", ")+"</p>":"")+"</section>";
+  return h;
+}
+function vMes(){
+  var me=agent(S.me);if(!me)return'<section class="card"><p class="muted">Compte introuvable.</p></section>';
+  var mine=S.requests.filter(function(r){return r.agentId===me.id}).sort(function(a,b){return a.from<b.from?1:-1});
+  var ci=cpInfo(me);
+  var h='<section class="card"><div class="row between"><h2>Mes demandes</h2><button class="btn pri" data-act="newreq">Nouvelle demande</button></div><div class="v '+(ci.has&&ci.left<0?"bad":"off")+'">'+esc(cpLine(me))+"</div>";
+  if(!mine.length)h+='<p class="small muted">Aucune demande pour le moment.</p>';
+  else h+='<div class="list">'+mine.map(function(r){return'<div class="item"><div class="grow"><div class="t">'+reqLine(r)+"</div>"+(r.note?'<div class="small muted">'+esc(r.note)+"</div>":"")+(r.mgrNote?'<div class="small">Réponse : '+esc(r.mgrNote)+"</div>":"")+
+    '</div><div class="row">'+statusPill(r)+(r.status==="pending"?'<button class="btn sm danger" data-act="cancel" data-id="'+r.id+'">Annuler</button>':"")+"</div></div>"}).join("")+"</div>";
+  return h+"</section>";
+}
+function vMgr(){
+  var c=cfg();
+  var secs=[["dem","Demandes"],["rh","Envoi RH"],["eq","Équipe"],["cr","Critères"],["hi","Historique"]];
+  var h='<div class="seg">'+secs.map(function(s){return'<button data-act="sec" data-s="'+s[0]+'" aria-selected="'+(S.sec===s[0])+'">'+s[1]+"</button>"}).join("")+"</div>";
+  if(S.sec==="dem"){
+    var p=S.requests.filter(function(r){return r.status==="pending"}).sort(function(a,b){return(a.createdAt||"")<(b.createdAt||"")?-1:1});
+    h+='<section class="card"><div class="row between"><h2>À traiter</h2><button class="btn" data-act="newreq" data-any="1">Saisir une demande</button></div>';
+    if(!p.length)h+='<p class="small muted">Aucune demande en attente.</p>';
+    else h+='<div class="list">'+p.map(function(r){var ag=agent(r.agentId),k=ag?checkRange(ag,r.from,r.to,r.id):{bad:[]};
+      var bad=k.bad.filter(function(b){return b.code!=="delai"&&b.code!=="passe"});
+      var late=!!r.createdAt&&diff(String(r.createdAt).slice(0,10),r.from)<c.noticeDays;
+      return'<div class="item"><div class="grow"><div class="t">'+esc(aName(r.agentId))+(ag&&ag.poste?' <span class="muted small">'+esc(ag.poste)+"</span>":"")+'</div><div class="small">'+reqLine(r)+'</div><div class="small muted">Demandé le '+fmtDT(r.createdAt)+(r.note?" · "+esc(r.note):"")+"</div>"+(ag&&r.type==="CP"?'<div class="small muted">'+esc(cpLine(ag))+"</div>":"")+
+        (bad.length?'<div class="small" style="color:var(--bad)">Hors critères sur '+bad.length+" jour"+(bad.length>1?"s":"")+" : "+esc(reason(bad[0]))+"</div>":"")+(late?'<div class="small" style="color:var(--bad)">Délai de prévenance non respecté</div>':"")+(!bad.length&&!late?'<div class="small" style="color:var(--ok)">Critères respectés</div>':"")+
+        '</div><div class="row"><button class="btn sm pri" data-act="decide" data-id="'+r.id+'" data-s="approved">Valider</button><button class="btn sm danger" data-act="decide" data-id="'+r.id+'" data-s="refused">Refuser</button></div></div>'}).join("")+"</div>";
+    h+="</section>";
+    var T=today(),up=S.requests.filter(function(r){return r.status==="approved"&&r.to>=T}).sort(function(a,b){return a.from<b.from?-1:1});
+    h+='<section class="card"><h3>Validés à venir</h3>'+(up.length?'<div class="list">'+up.map(function(r){return'<div class="item"><div class="grow"><div class="t">'+esc(aName(r.agentId))+'</div><div class="small muted">'+reqLine(r)+'</div></div><div class="row"><button class="btn sm" data-act="retype" data-id="'+r.id+'">Motif</button><button class="btn sm danger" data-act="cancel" data-id="'+r.id+'">Annuler</button></div></div>'}).join("")+"</div>":'<p class="small muted">Aucun congé validé à venir.</p>')+"</section>";
+  }else if(S.sec==="rh"){
+    var ap=S.requests.filter(function(r){return r.status==="approved"}),todo=ap.filter(function(r){return!r.hrSentAt}).sort(function(a,b){return a.from<b.from?-1:1}),done=ap.filter(function(r){return r.hrSentAt}).sort(function(a,b){return a.hrSentAt<b.hrSentAt?1:-1});
+    h+='<section class="card"><h2>À transmettre au RH</h2>';
+    if(!todo.length)h+='<p class="small muted">Rien à transmettre : tous les congés validés sont déjà partis au RH.</p>';
+    else{h+='<div class="list">'+todo.map(function(r){return'<label class="item" style="cursor:pointer"><div class="row grow" style="flex-wrap:nowrap"><input class="check" type="checkbox" data-hr="'+r.id+'"'+(S.hrOff[r.id]?"":" checked")+'><div><div class="t">'+esc(aName(r.agentId))+'</div><div class="small muted">'+reqLine(r)+"</div></div></div></label>"}).join("")+"</div>";
+      h+='<div class="row"><button class="btn pri" data-act="pdf">Télécharger le PDF</button><button class="btn" data-act="copyhr">Copier le récap</button><button class="btn" data-act="hrsent">Marquer comme transmis</button></div><p class="small muted">Le PDF ne part pas tout seul : télécharge-le, envoie-le au RH, puis marque les congés comme transmis.</p>'}
+    h+='</section><section class="card"><h3>Déjà transmis</h3>'+(done.length?'<div class="list">'+done.map(function(r){return'<div class="item"><div><div class="t">'+esc(aName(r.agentId))+'</div><div class="small muted">'+reqLine(r)+'</div></div><span class="small muted">le '+fmtDT(r.hrSentAt)+"</span></div>"}).join("")+"</div>":'<p class="small muted">Aucun envoi enregistré.</p>')+"</section>";
+  }else if(S.sec==="eq"){
+    var all=S.agents.slice().sort(function(a,b){return String(a.name).localeCompare(String(b.name),"fr")});
+    h+='<section class="card"><div class="row between"><h2>Équipe ('+actives().length+')</h2><button class="btn pri" data-act="agnew">Ajouter un agent</button></div>'+(all.length?'<div class="list">'+all.map(function(a){return'<div class="item"><div><div class="t">'+esc(a.name)+(a.role==="resp"?' <span class="pill ok">Responsable</span>':"")+(a.active===false?' <span class="pill off">Inactif</span>':"")+(a.locked?' <span class="pill bad">Bloqué 15 min</span>':"")+'</div><div class="small muted">'+(a.poste?esc(a.poste):"Poste à définir")+" · "+(a.hasPin?"code créé":"pas encore de code")+'</div><div class="small muted">'+esc(cpLine(a))+'</div></div><button class="btn sm" data-act="agedit" data-id="'+a.id+'">Modifier</button></div>'}).join("")+"</div>":"")+"</section>";
+  }else if(S.sec==="cr"){
+    if(!S.draft)S.draft=JSON.parse(JSON.stringify({maxAbsents:c.maxAbsents,noticeDays:c.noticeDays,postes:c.postes,quotas:c.quotas,blocked:c.blocked,cpFrom:c.cpFrom}));
+    var D=S.draft;
+    h+='<section class="card"><h2>Critères</h2><div class="grid2"><label class="f">Absents maximum par jour<input type="number" min="1" id="c-max" data-d="maxAbsents" value="'+esc(D.maxAbsents)+'"></label><label class="f">Délai de prévenance (jours)<input type="number" min="0" id="c-del" data-d="noticeDays" value="'+esc(D.noticeDays)+'"></label></div><label class="f">Compter les CP pris à partir du (début de la période, facultatif)<input type="date" id="c-cpf" data-d="cpFrom" value="'+esc(D.cpFrom)+'"></label>';
+    h+='<h3>Quota par poste</h3><p class="small muted">Nombre d\'agents du même poste absents en même temps. Vide : pas de limite.</p>'+D.postes.map(function(p,i){return'<div class="row"><span class="grow">'+esc(p)+'</span><input type="number" min="0" style="width:84px" id="c-q'+i+'" data-q="'+esc(p)+'" value="'+esc(D.quotas[p]!=null?D.quotas[p]:"")+'" aria-label="Quota '+esc(p)+'"><button class="btn sm danger" data-act="pdel" data-i="'+i+'">Retirer</button></div>'}).join("")+
+      '<div class="row"><input type="text" id="c-np" class="grow" placeholder="Nouveau poste" style="width:auto"><button class="btn sm" data-act="padd">Ajouter</button></div>';
+    h+='<h3>Périodes bloquées</h3>'+(D.blocked.length?"":'<p class="small muted">Aucune période bloquée.</p>')+D.blocked.map(function(b,i){return'<div class="card" style="padding:10px"><label class="f">Nom<input type="text" id="c-bl'+i+'" data-b="'+i+'" data-k="label" value="'+esc(b.label)+'"></label><div class="grid2"><label class="f">Du<input type="date" id="c-bf'+i+'" data-b="'+i+'" data-k="from" value="'+esc(b.from)+'"></label><label class="f">Au<input type="date" id="c-bt'+i+'" data-b="'+i+'" data-k="to" value="'+esc(b.to)+'"></label></div><button class="btn sm danger" data-act="bdel" data-i="'+i+'">Supprimer cette période</button></div>'}).join("")+
+      '<div class="row"><button class="btn sm" data-act="badd">Ajouter une période</button></div><button class="btn pri" data-act="crsave">Enregistrer les critères</button></section>';
+    h+='<section class="card"><h3>Code d\'équipe</h3><p class="small muted">Demandé une fois sur chaque appareil. Si tu le changes, tout le monde devra saisir le nouveau.</p><label class="f">Nouveau code d\'équipe (6 caractères ou plus)<input type="text" id="c-team" autocomplete="off" spellcheck="false"></label><button class="btn" data-act="teamset" style="align-self:flex-start">Changer le code d\'équipe</button></section>';
+  }else{
+    h+='<section class="card"><h2>Historique</h2>'+(S.hist.length?'<div class="list">'+S.hist.map(function(x){var r=reqBy(x.requestId);return'<div class="item"><div><div class="t">'+esc(x.act)+(r?" · "+esc(aName(r.agentId)):"")+'</div><div class="small muted">'+(r?reqLine(r):"")+(x.note?" · "+esc(x.note):"")+'</div></div><span class="small muted">'+fmtDT(x.at)+" · "+esc(x.by?aName(x.by):"")+"</span></div>"}).join("")+"</div>":'<p class="small muted">Rien pour le moment. Chaque demande, validation, refus et envoi RH est gardé ici.</p>')+"</section>";
+  }
+  return h;
+}
+
+/* ---------- Sheets (modals) ---------- */
+function openSheet(s){S.sheet=s;renderSheet()}
+function closeSheet(){S.sheet=null;$("#sheet").classList.remove("open")}
+function typeOpts(sel,empty){return(empty?'<option value="">Choisir le motif</option>':"")+Object.keys(TYPES).map(function(k){return'<option value="'+k+'"'+(k===sel?" selected":"")+">"+esc(TYPES[k])+"</option>"}).join("")}
+function renderSheet(){
+  var f=S.sheet,h="";if(!f){closeSheet();return}
+  if(f.kind==="account"){
+    var me=agent(S.me);
+    h="<h2>"+esc(me?me.name:"Mon compte")+'</h2><p class="small muted">'+(me&&me.poste?esc(me.poste)+" · ":"")+(S.mgr?"Responsable":"Agent")+'</p><div class="row"><button class="btn danger" data-act="logout">Me déconnecter</button><button class="btn" data-act="close">Fermer</button></div>';
+  }else if(f.kind==="req"){
+    h="<h2>Demande de congé ou d'absence</h2>";
+    if(f.any)h+='<label class="f">Agent<select id="s-ag" data-f="agentId"><option value="">Choisir</option>'+actives().map(function(a){return'<option value="'+a.id+'"'+(a.id===f.agentId?" selected":"")+">"+esc(a.name)+"</option>"}).join("")+"</select></label>";
+    else h+='<p class="muted">'+esc(aName(f.agentId))+"</p>";
+    h+='<label class="f">Motif<select id="s-type" data-f="type">'+typeOpts(f.type,true)+"</select></label>"+
+      '<div class="grid2"><label class="f">Du<input type="date" id="s-from" data-f="from" value="'+esc(f.from)+'"></label><label class="f">Au<input type="date" id="s-to" data-f="to" value="'+esc(f.to)+'"></label></div>'+
+      '<label class="f">Commentaire (facultatif)<textarea id="s-note" data-f="note">'+esc(f.note)+"</textarea></label>"+
+      '<div id="verdict"></div><div class="row"><button class="btn pri" id="s-send" data-act="reqsend">Envoyer la demande</button><button class="btn" data-act="close">Annuler</button></div>';
+  }else if(f.kind==="decide"){
+    var r=f.r;
+    h="<h2>"+(f.s==="approved"?"Valider":"Refuser")+" la demande</h2><p><strong>"+esc(aName(r.agentId))+"</strong><br>"+reqLine(r)+'</p><label class="f">Motif (à corriger si besoin)<select id="s-dt" data-f="type">'+typeOpts(f.type)+'</select></label><label class="f">Mot pour l\'agent (facultatif)<textarea id="s-mn" data-f="mgrNote"></textarea></label><div class="row"><button class="btn pri" data-act="decideok">Confirmer</button><button class="btn" data-act="close">Annuler</button></div>';
+  }else if(f.kind==="retype"){
+    h="<h2>Corriger le motif</h2><p><strong>"+esc(aName(f.r.agentId))+"</strong><br>"+reqLine(f.r)+'</p><label class="f">Motif<select id="s-rt" data-f="type">'+typeOpts(f.type)+'</select></label><div class="row"><button class="btn pri" data-act="retypeok">Enregistrer</button><button class="btn" data-act="close">Annuler</button></div>';
+  }else if(f.kind==="ag"){
+    var c=cfg(),self=f.id===S.me;
+    h="<h2>"+(f.id?"Modifier l'agent":"Ajouter un agent")+'</h2><label class="f">Nom<input type="text" id="s-an" data-f="name" value="'+esc(f.name)+'"></label><label class="f">Poste<select id="s-ap" data-f="poste"><option value="">À définir</option>'+c.postes.map(function(p){return'<option'+(p===f.poste?" selected":"")+">"+esc(p)+"</option>"}).join("")+"</select></label>"+
+      '<label class="f">CP acquis sur la période (jours)<input type="number" min="0" step="0.5" id="s-cp" data-f="cpSolde" value="'+esc(f.cpSolde)+'"></label>'+
+      (self?"":'<label class="row"><input class="check" type="checkbox" id="s-ar" data-fc="resp"'+(f.resp?" checked":"")+"> Accès responsable (valide les demandes, gère l'équipe)</label>")+
+      (f.id&&!self?'<label class="row"><input class="check" type="checkbox" id="s-aa" data-fc="active"'+(f.active?" checked":"")+"> Agent actif</label>":"")+
+      '<div class="row"><button class="btn pri" data-act="agsave">Enregistrer</button><button class="btn" data-act="close">Annuler</button></div>'+
+      (f.id&&!self?'<div class="row"><button class="btn sm" data-act="agpin">Réinitialiser son code</button><button class="btn sm danger" data-act="agdel">'+(f.sure?"Confirmer la suppression":"Supprimer l'agent")+"</button></div>":"");
+  }
+  $("#box").innerHTML=h;$("#sheet").classList.add("open");
+  if(f.kind==="req")updVerdict();
+}
+function reqState(){
+  var f=S.sheet,ag=agent(f.agentId);
+  if(!ag)return{ok:false,html:'<div class="v off">Choisis un agent.</div>'};
+  if(!f.type)return{ok:false,html:'<div class="v off">Choisis le motif : congés payés ou autre absence.</div>'};
+  if(!f.from||!f.to)return{ok:false,html:'<div class="v off">Choisis les dates de début et de fin.</div>'};
+  if(f.to<f.from)return{ok:false,html:'<div class="v bad">La date de fin est avant la date de début.</div>'};
+  var k=checkRange(ag,f.from,f.to,null);
+  if(k.days>120)return{ok:false,html:'<div class="v bad">Période trop longue : 120 jours maximum par demande.</div>'};
+  if(!k.bad.length)return{ok:true,clean:true,html:'<div class="v ok">Toutes les dates respectent les critères.</div>'};
+  var g={};k.bad.forEach(function(b){var t=reason(b);(g[t]=g[t]||[]).push(b.iso)});
+  var li=Object.keys(g).map(function(t){var d=g[t];return"<li>"+esc(t)+" : "+d.slice(0,5).map(fmtS).join(", ")+(d.length>5?" et "+(d.length-5)+" autre"+(d.length-5>1?"s":""):"")+"</li>"}).join("");
+  var hard=k.bad.some(function(b){return b.code==="mine"||(b.code==="passe"&&!S.mgr)});
+  if(hard)return{ok:false,html:'<div class="v bad">Demande impossible telle quelle :<ul>'+li+"</ul></div>"};
+  return{ok:true,clean:false,html:'<div class="v warn">'+k.bad.length+" jour"+(k.bad.length>1?"s":"")+" hors critères :<ul>"+li+"</ul>Tu peux envoyer la demande quand même : c'est le responsable qui décide.</div>"};
+}
+function updVerdict(){
+  var f=S.sheet;if(!f||f.kind!=="req")return;var st=reqState(),h=st.html;
+  var cd=f.from&&f.to&&f.to>=f.from?cpDays(f.from,f.to):null;
+  if(cd!=null&&f.type){
+    if(f.type==="CP"){
+      h+='<p class="small" style="margin-top:6px"><strong>'+cd+" jour"+(cd>1?"s":"")+" de CP décompté"+(cd>1?"s":"")+"</strong> · dimanches et jours fériés non comptés</p>";
+      var ag=agent(f.agentId);
+      if(ag){var ci=cpInfo(ag),n2=ci.has?ci.left-ci.pend-cd:0;
+        h+=ci.has?'<p class="small" style="margin-top:4px;'+(n2<0?"color:var(--bad)":"")+'">Solde CP : '+ci.left+" j restants"+(ci.pend?", "+ci.pend+" j déjà en attente":"")+" · après cette demande : "+n2+" j"+(n2<0?" (solde dépassé, le responsable décide)":"")+"</p>":'<p class="small muted" style="margin-top:4px">Solde CP non renseigné.</p>'}
+    }else{var nd=diff(f.from,f.to)+1;h+='<p class="small" style="margin-top:6px"><strong>'+nd+" jour"+(nd>1?"s":"")+" d'absence</strong> · aucun CP décompté pour ce motif</p>"}
+  }
+  $("#verdict").innerHTML=h;$("#s-send").disabled=!st.ok||S.busy;
+}
+function copy(text){try{navigator.clipboard.writeText(text).then(function(){toast("Copié. Colle-le dans ton message.")},function(){toast("Copie impossible sur cet appareil.")})}catch(e){toast("Copie impossible sur cet appareil.")}}
+function hrSel(){return S.requests.filter(function(r){return r.status==="approved"&&!r.hrSentAt&&!S.hrOff[r.id]}).sort(function(a,b){return a.from<b.from?-1:1})}
+function hrText(rows){return"Congés validés - GL CAP 3000 - Byblos Sécurité Group\nÉtabli le "+fmtS(today())+"\n\n"+rows.map(function(r){var a=agent(r.agentId);return"- "+aName(r.agentId)+(a&&a.poste?" ("+a.poste+")":"")+" : "+(TYPES[r.type]||r.type)+", du "+fmtS(r.from)+" au "+fmtS(r.to)+", "+dur(r)+(r.type==="CP"?" jours de CP":" jours hors CP")}).join("\n")}
+function makePdf(rows){
+  var doc=new window.jspdf.jsPDF({orientation:"landscape",unit:"mm",format:"a4"}),y=18;
+  var cols=[["Agent",14],["Poste",78],["Motif",122],["Du",178],["Au",206],["Jours",234],["Validé le",254]];
+  function head(){doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Congés validés - GL CAP 3000",14,y);doc.setFontSize(10);doc.setFont("helvetica","normal");doc.text("Byblos Sécurité Group - établi le "+fmtS(today()),14,y+6);y+=16;
+    doc.setFont("helvetica","bold");cols.forEach(function(c){doc.text(c[0],c[1],y)});doc.setLineWidth(.4);doc.line(14,y+2,283,y+2);y+=8;doc.setFont("helvetica","normal")}
+  head();
+  rows.forEach(function(r){if(y>185){doc.addPage();y=18;head()}var a=agent(r.agentId);
+    var v=[aName(r.agentId),a&&a.poste?a.poste:"",TYPES[r.type]||r.type,fmtS(r.from),fmtS(r.to),String(dur(r)),r.decidedAt?fmtDT(r.decidedAt).slice(0,10):""];
+    v.forEach(function(t,i){doc.text(String(t).slice(0,30),cols[i][1],y)});doc.setLineWidth(.1);doc.line(14,y+2.5,283,y+2.5);y+=8});
+  if(y>170){doc.addPage();y=18}
+  y+=8;doc.text(rows.length+" absence"+(rows.length>1?"s":"")+" - "+rows.reduce(function(s,r){return s+(r.type==="CP"?nDays(r):0)},0)+" jours de CP décomptés au total (hors dimanches et jours fériés)",14,y);
+  y+=14;doc.text("Le responsable sûreté :",200,y);doc.line(200,y+16,270,y+16);
+  return doc;
+}
+
+/* ---------- Actions ---------- */
+var A={
+  tab:function(d){S.tab=d.t;render(true)},
+  sec:function(d){S.sec=d.s;S.draft=null;render(true)},
+  mon:function(d){var m=S.month[1]+(+d.d),y=S.month[0];if(m<0){m=11;y--}if(m>11){m=0;y++}S.month=[y,m];S.day=null;render(true)},
+  day:function(d){S.day=d.iso;render(true)},
+  close:function(){closeSheet()},
+  retry:function(){S.neterr=false;render(true);load()},
+  account:function(){openSheet({kind:"account"})},
+  logout:function(){doLogout(false)},
+  /* login */
+  teamok:function(){var v=String($("#l-team").value||"").trim();if(!v)return;S.login.msg="";
+    rpc("ct_team",{p_team:v}).then(function(j){
+      if(j&&j.agents){S.team=v;store("ct_team",v);S.login.agents=j.agents;S.login.step="names"}
+      else S.login.msg=j&&j.error==="throttle"?"Trop de tentatives. Réessaie dans 10 minutes.":"Code d'équipe incorrect.";
+      render(true)},function(){S.login.msg="Connexion impossible. Vérifie ton réseau.";render(true)})},
+  teamreset:function(){S.team=null;store("ct_team",null);S.login={step:"team",agents:[],pick:null,msg:""};render(true)},
+  lpick:function(d){var a=S.login.agents.filter(function(x){return x.id===d.id})[0];if(!a)return;S.login.pick=a;S.login.step="pin";S.login.msg="";render(true)},
+  lback:function(){S.login.step="names";S.login.msg="";render(true)},
+  lgo:function(){var L=S.login,a=L.pick,pin=String($("#l-pin").value||"").trim(),keep=$("#l-keep").checked;
+    if(pin.length<4){L.msg="Le code doit faire au moins 4 chiffres.";render(true);return}
+    if(!a.has_pin&&pin!==String($("#l-pin2").value||"").trim()){L.msg="Les deux codes ne sont pas identiques.";render(true);return}
+    L.msg="";
+    rpc("ct_login",{p_team:S.team,p_agent:a.id,p_pin:pin}).then(function(j){
+      if(j&&j.token){setToken(j.token,keep);S.login={step:"names",agents:L.agents,pick:null,msg:""};render(true);load();return}
+      var e=j&&j.error;
+      if(e==="pin")L.msg="Code incorrect. Encore "+j.left+" essai"+(j.left>1?"s":"")+" avant blocage.";
+      else if(e==="locked")L.msg="Trop d'erreurs : ce compte est bloqué 15 minutes. Ton responsable peut réinitialiser ton code.";
+      else if(e==="throttle")L.msg="Trop de tentatives. Réessaie dans 10 minutes.";
+      else if(e==="bad"){S.team=null;store("ct_team",null);L.step="team";L.msg="Le code d'équipe a changé. Demande le nouveau à ton responsable."}
+      else L.msg="Connexion refusée.";
+      render(true)},function(){L.msg="Connexion impossible. Vérifie ton réseau.";render(true)})},
+  /* requests */
+  newreq:function(d){var any=!!d.any&&S.mgr;openSheet({kind:"req",any:any,agentId:any?"":S.me,from:d.from||"",to:d.from||"",type:"",note:""})},
+  reqsend:function(){var f=S.sheet,st=reqState();if(!st.ok||S.busy)return;S.busy=true;$("#s-send").disabled=true;
+    act("ct_request_create",{p_agent:f.any?f.agentId:null,p_from:f.from,p_to:f.to,p_type:f.type,p_note:String(f.note||"").slice(0,500),p_override:st.clean===false},"Demande enregistrée, en attente de validation.").then(function(ok){S.busy=false;if(ok)closeSheet();else if(S.sheet)updVerdict()})},
+  cancel:function(d){act("ct_request_cancel",{p_id:d.id},"Demande annulée.")},
+  decide:function(d){var r=reqBy(d.id);if(r)openSheet({kind:"decide",r:r,s:d.s,mgrNote:"",type:r.type})},
+  decideok:function(){var f=S.sheet;act("ct_request_decide",{p_id:f.r.id,p_status:f.s,p_type:f.type||f.r.type,p_note:String(f.mgrNote||"").slice(0,500)},f.s==="approved"?"Demande validée.":"Demande refusée.").then(function(ok){if(ok)closeSheet()})},
+  retype:function(d){var r=reqBy(d.id);if(r)openSheet({kind:"retype",r:r,type:r.type})},
+  retypeok:function(){var f=S.sheet;act("ct_request_type",{p_id:f.r.id,p_type:f.type},"Motif corrigé.").then(function(ok){if(ok)closeSheet()})},
+  /* team */
+  agnew:function(){openSheet({kind:"ag",id:"",name:"",poste:"",active:true,cpSolde:"",resp:false})},
+  agedit:function(d){var a=agent(d.id);if(a)openSheet({kind:"ag",id:a.id,name:a.name,poste:a.poste||"",active:a.active!==false,cpSolde:a.cpSolde!=null?a.cpSolde:"",resp:a.role==="resp"})},
+  agsave:function(){var f=S.sheet,name=String(f.name||"").trim().slice(0,60);if(!name){toast("Indique un nom.");return}
+    var cs=(f.cpSolde===""||f.cpSolde==null||isNaN(parseFloat(f.cpSolde)))?null:parseFloat(f.cpSolde);
+    act("ct_agent_save",{p_id:f.id||null,p_name:name,p_poste:f.poste||"",p_active:!!f.active,p_cp:cs,p_role:f.resp||f.id===S.me?"resp":"agent"},"Agent enregistré.").then(function(ok){if(ok)closeSheet()})},
+  agpin:function(){var f=S.sheet;act("ct_agent_reset",{p_id:f.id},"Code effacé. L'agent en choisira un nouveau à sa prochaine connexion.").then(function(ok){if(ok)closeSheet()})},
+  agdel:function(){var f=S.sheet;if(!f.sure){f.sure=true;renderSheet();return}
+    call("ct_agent_delete",{p_id:f.id}).then(function(j){if(!j)return;closeSheet();toast(j.inactive?"Agent passé en inactif : ses congés restent dans l'historique.":"Agent supprimé.");load()})},
+  /* criteria */
+  padd:function(){var v=String($("#c-np").value||"").trim().slice(0,40);if(!v||S.draft.postes.indexOf(v)>=0)return;S.draft.postes.push(v);render(true)},
+  pdel:function(d){var p=S.draft.postes[+d.i];S.draft.postes.splice(+d.i,1);delete S.draft.quotas[p];render(true)},
+  badd:function(){S.draft.blocked.push({label:"",from:"",to:""});render(true)},
+  bdel:function(d){S.draft.blocked.splice(+d.i,1);render(true)},
+  crsave:function(){var D=S.draft,mx=parseInt(D.maxAbsents,10),nd=parseInt(D.noticeDays,10);
+    if(!(mx>=1)||!(nd>=0)){toast("Vérifie le maximum d'absents (1 ou plus) et le délai (0 ou plus).");return}
+    var bl=D.blocked.filter(function(b){return b.from&&b.to});
+    if(bl.length!==D.blocked.length||bl.some(function(b){return b.to<b.from})){toast("Chaque période bloquée doit avoir un début et une fin dans le bon ordre.");return}
+    var q={};D.postes.forEach(function(p){var v=D.quotas[p];if(v!==""&&v!=null&&!isNaN(parseInt(v,10)))q[p]=parseInt(v,10)});
+    call("ct_config_save",{p_cfg:{maxAbsents:mx,noticeDays:nd,postes:D.postes,quotas:q,blocked:bl,cpFrom:D.cpFrom||""}}).then(function(j){if(!j)return;S.draft=null;toast("Critères enregistrés.");load().then(function(){render(true)})})},
+  teamset:function(){var v=String($("#c-team").value||"").trim();if(v.length<6){toast("Le code d'équipe doit faire au moins 6 caractères.");return}
+    call("ct_team_set",{p_new:v}).then(function(j){if(!j)return;S.team=v;store("ct_team",v);toast("Code d'équipe changé. Donne le nouveau à ton équipe.");render(true)})},
+  /* HR */
+  pdf:function(){var rows=hrSel();if(!rows.length){toast("Coche au moins un congé.");return}
+    if(!window.jspdf){toast("Le PDF n'a pas pu se charger. Utilise « Copier le récap ».");return}
+    try{makePdf(rows).save("conges-valides-GL-CAP-3000-"+today()+".pdf");toast("PDF téléchargé. Pense à marquer les congés comme transmis après l'envoi.")}catch(e){toast("Le PDF n'a pas pu être créé.")}},
+  copyhr:function(){var rows=hrSel();if(!rows.length){toast("Coche au moins un congé.");return}copy(hrText(rows))},
+  hrsent:function(){var rows=hrSel();if(!rows.length){toast("Coche au moins un congé.");return}
+    act("ct_hr_sent",{p_ids:rows.map(function(r){return r.id})},rows.length+" congé"+(rows.length>1?"s":"")+" marqué"+(rows.length>1?"s":"")+" comme transmis.")}
+};
+document.addEventListener("click",function(e){
+  if(e.target.id==="sheet"){closeSheet();return}
+  var el=e.target.closest("[data-act]");if(!el||el.disabled)return;var fn=A[el.dataset.act];if(fn)fn(el.dataset,el)});
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target&&e.target.dataset&&e.target.dataset.enter){e.preventDefault();var fn=A[e.target.dataset.enter];if(fn)fn({})}});
+document.addEventListener("input",function(e){var el=e.target,d=el.dataset;
+  if(d.f&&S.sheet){S.sheet[d.f]=el.value;if(S.sheet.kind==="req"){if(d.f==="from"&&(!S.sheet.to||S.sheet.to<el.value)){S.sheet.to=el.value;var t=$("#s-to");if(t)t.value=el.value}updVerdict()}}
+  else if(d.fc&&S.sheet){S.sheet[d.fc]=el.checked}
+  else if(d.hr){if(el.checked)delete S.hrOff[d.hr];else S.hrOff[d.hr]=true}
+  else if(S.draft){if(d.d)S.draft[d.d]=el.value;else if(d.q!=null&&d.q!=="")S.draft.quotas[d.q]=el.value;else if(d.b!=null&&d.k)S.draft.blocked[+d.b][d.k]=el.value}});
+document.addEventListener("focusout",function(){if(S.dirty){S.dirty=false;setTimeout(function(){render()},60)}});
+document.addEventListener("submit",function(e){e.preventDefault()});
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&S.token&&S.ready&&!S.sheet)load()});
+setInterval(function(){if(!document.hidden&&S.token&&S.ready&&!S.sheet&&!S.draft)load()},60000);
+
+(function init(){
+  S.team=store("ct_team");
+  S.token=store("ct_tok",undefined,true)||store("ct_tok");
+  if(S.token){render(true);load()}else startLogin();
+})();
+</script>
+</body>
+</html>
