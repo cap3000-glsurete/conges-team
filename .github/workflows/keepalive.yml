@@ -1,0 +1,18 @@
+name: Garder la base active
+
+# Interroge la base tous les deux jours pour eviter la mise en pause du plan gratuit Supabase.
+on:
+  schedule:
+    - cron: "17 5 */2 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appel de la base
+        run: |
+          curl -sS --fail -X POST "https://lxmpiiwgofmpcbdbhens.supabase.co/rest/v1/rpc/ct_ping" \
+            -H "apikey: sb_publishable_MOnmoccuJcQVvMJ4WbigzA_DnvN0-fZ" \
+            -H "Authorization: Bearer sb_publishable_MOnmoccuJcQVvMJ4WbigzA_DnvN0-fZ" \
+            -H "Content-Type: application/json" -d '{}'
